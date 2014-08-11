@@ -220,6 +220,7 @@
                         <group>
                             <group string="General Information">
                                 <field name="action"/>
+                                <field name="pricelist_id"/>
                                 <field name="sequence"/>
                                 <field name="active"/>
                             </group>

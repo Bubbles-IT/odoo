@@ -104,12 +104,18 @@ class stock_move(osv.osv):
         """
         if context is None:
             context = {}
+
+        res = move_line.product_id.list_price
         if type in ('in_invoice', 'in_refund'):
             # Take the user company and pricetype
             product = move_line.product_id.with_context(currency_id=move_line.company_id.currency_id.id)
             amount_unit = product.price_get('standard_price')[move_line.product_id.id]
-            return amount_unit
-        return move_line.product_id.list_price
+            res = amount_unit
+
+        if move_line.rule_id and move_line.rule_id.pricelist_id:
+            pricelist = move_line.rule_id.pricelist_id
+            res = pricelist.price_get(prod_id=move_line.product_id.id, qty=move_line.product_uom_qty)
+        return res
 
     def _get_invoice_line_vals(self, cr, uid, move, partner, inv_type, context=None):
         fp_obj = self.pool.get('account.fiscal.position')

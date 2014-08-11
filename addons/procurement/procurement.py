@@ -86,6 +86,7 @@ class procurement_rule(osv.osv):
         'group_id': fields.many2one('procurement.group', 'Fixed Procurement Group'),
         'action': fields.selection(selection=lambda s, cr, uid, context=None: s._get_action(cr, uid, context=context),
             string='Action', required=True),
+        'pricelist_id': fields.many2one('product.pricelist', help="Movements will be invoiced with this pricelist unless a sales or purchase order was the origin.")
         'sequence': fields.integer('Sequence'),
         'company_id': fields.many2one('res.company', 'Company'),
     }
