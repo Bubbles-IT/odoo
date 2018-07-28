@@ -1,17 +1,25 @@
-============================
-odoo developer documentation
-============================
+:main-title: Developer Documentation
+:banner: banners/index.jpg
 
-.. TODO: replace or style
+=====
+Index
+=====
 
-.. hidden toctree w/o titlesonly otherwise the titlesonly "sticks" to
-   in-document toctrees and we can't have a toctree showing both "sibling"
-   pages and current document sections
+.. todo:: what's the documentation's license?
 
+.. rst-class:: index-tree
+.. titlesonly breaks level 3 (~in-document) toc of left navbar, so use
+   maxdepth instead
 .. toctree::
-    :hidden:
+    :maxdepth: 2
 
     tutorials
-    guides
+    webservices
+    setup
     reference
-    modules
+
+.. ifconfig:: todo_include_todos
+
+    .. rubric:: Things to add and fix
+
+    .. todolist::

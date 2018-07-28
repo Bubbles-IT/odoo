@@ -8,28 +8,30 @@ import sphinx
 DIR = os.path.dirname(__file__)
 sys.path.append(
     os.path.abspath(
-        os.path.join(DIR, '_themes')))
+        os.path.join(DIR, '_extensions')))
 # autodoc
 sys.path.append(os.path.abspath(os.path.join(DIR, '..')))
 
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = '1.1'
+needs_sphinx = '1.2'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
+    'sphinx.ext.ifconfig',
     'sphinx.ext.todo',
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
-    'odoodoc',
+    'sphinx.ext.linkcode',
+    'autojsdoc.ext',
+    'github_link',
+    'odoo_ext',
+    'html_domain',
+    'exercise_admonition',
     'patchqueue'
 ]
-if sphinx.__version__.split('.') >= ['1', '2']:
-    # linkcode is only available from Sphinx 1.2
-    extensions.insert(0, 'sphinx.ext.linkcode')
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -44,17 +46,17 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'odoo developer documentation'
-copyright = u'2014, OpenERP s.a.'
+project = u'odoo'
+copyright = u'Odoo S.A.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '8.0'
+version = 'master'
 # The full version, including alpha/beta/rc tags.
-release = '8.0b1'
+release = 'master'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -66,8 +68,9 @@ today_fmt = '%B %d, %Y'
 # directories to ignore when looking for source files.
 exclude_patterns = ['_build']
 
-# The reST default role (used for this markup: `text`) to use for all documents.
-#default_role = None
+# markdown compatibility: make `foo` behave like ``foo``, the rst default is
+# title-reference which is never what people are looking for
+default_role = 'literal'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
@@ -90,7 +93,9 @@ pygments_style = 'odoo'
 # -- Options for HTML output ---------------------------------------------------
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'odoodoc'
+html_theme = 'odoo_ext'
+
+odoo_cover_default = 'banners/installing_odoo.jpg'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -98,7 +103,7 @@ html_theme = 'odoodoc'
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = ['_themes']
+html_theme_path = ['_extensions']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -121,9 +126,7 @@ html_theme_path = ['_themes']
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_style = "odoo.css"
-
-html_add_permalinks = False
+html_add_permalinks = u''
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -165,13 +168,29 @@ html_sidebars = {
 # base URL from which the finished HTML is served.
 #html_use_opensearch = ''
 
+latex_elements = {
+    'papersize': r'a4paper',
+    'preamble': u'''\\setcounter{tocdepth}{2}
+''',
+}
+
+# default must be set otherwise ifconfig blows up
+todo_include_todos = False
+
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/2/', None),
-    'werkzeug': ('http://werkzeug.pocoo.org/docs/0.9/', None),
+    'python': ('https://docs.python.org/3/', None),
+    'werkzeug': ('http://werkzeug.pocoo.org/docs/', None),
+    'sqlalchemy': ('http://docs.sqlalchemy.org/en/rel_0_9/', None),
+    'django': ('https://django.readthedocs.org/en/latest/', None),
 }
 
 github_user = 'odoo'
 github_project = 'odoo'
+
+# monkeypatch PHP lexer to not require <?php
+from sphinx.highlighting import lexers
+from pygments.lexers.web import PhpLexer
+lexers['php'] = PhpLexer(startinline=True)
 
 def setup(app):
     app.connect('html-page-context', canonicalize)
@@ -180,6 +199,9 @@ def setup(app):
 
     app.connect('html-page-context', versionize)
     app.add_config_value('versions', '', 'env')
+
+    app.connect('html-page-context', analytics)
+    app.add_config_value('google_analytics_key', '', 'env')
 
 def canonicalize(app, pagename, templatename, context, doctree):
     """ Adds a 'canonical' URL for the current document in the rendering
@@ -206,6 +228,12 @@ def versionize(app, pagename, templatename, context, doctree):
         if vs != app.config.version
     ]
 
+def analytics(app, pagename, templatename, context, doctree):
+    if not app.config.google_analytics_key:
+        return
+
+    context['google_analytics_key'] = app.config.google_analytics_key
+
 def _build_url(root, branch, pagename):
     return "{canonical_url}{canonical_branch}/{canonical_page}".format(
         canonical_url=root,
@@ -213,4 +241,3 @@ def _build_url(root, branch, pagename):
         canonical_page=(pagename + '.html').replace('index.html', '')
                                            .replace('index/', ''),
     )
-

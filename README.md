@@ -1,53 +1,33 @@
-[![Build Status](http://runbot.odoo.com/runbot/badge/default/1/master.svg)](http://runbot.odoo.com/runbot)
+[![Build Status](http://runbot.odoo.com/runbot/badge/flat/1/master.svg)](http://runbot.odoo.com/runbot)
+[![Tech Doc](http://img.shields.io/badge/master-docs-875A7B.svg?style=flat&colorA=8F8F8F)](http://www.odoo.com/documentation/master)
+[![Help](http://img.shields.io/badge/master-help-875A7B.svg?style=flat&colorA=8F8F8F)](https://www.odoo.com/forum/help-1)
+[![Nightly Builds](http://img.shields.io/badge/master-nightly-875A7B.svg?style=flat&colorA=8F8F8F)](http://nightly.odoo.com/)
 
 Odoo
 ----
 
 Odoo is a suite of web based open source business apps.
 
-It's main apps include an <a href="https://www.odoo.com/page/crm">Open Source CRM</a>, <a href="https://www.odoo.com/page/website-builder">Website Builder</a>, <a href="https://www.odoo.com/page/e-commerce">eCommerce</a>, <a href="https://www.odoo.com/page/project-management">Project Management</a>, <a href="https://www.odoo.com/page/accounting">Billing & Accounting</a>, <a href="https://www.odoo.com/page/point-of-sale">Point of Sale</a>, <a href="https://www.odoo.com/page/employees">Human Resources</a>, Marketing, Manufacturing, Purchase Management, ...  Each application is standalone but you get a full featured <a href="https://www.odoo.com">Open Source ERP</a> if you install several apps as they integrate to each others.
+The main Odoo Apps include an <a href="https://www.odoo.com/page/crm">Open Source CRM</a>,
+<a href="https://www.odoo.com/page/website-builder">Website Builder</a>,
+<a href="https://www.odoo.com/page/e-commerce">eCommerce</a>,
+<a href="https://www.odoo.com/page/warehouse">Warehouse Management</a>,
+<a href="https://www.odoo.com/page/project-management">Project Management</a>,
+<a href="https://www.odoo.com/page/accounting">Billing &amp; Accounting</a>,
+<a href="https://www.odoo.com/page/point-of-sale">Point of Sale</a>,
+<a href="https://www.odoo.com/page/employees">Human Resources</a>,
+<a href="https://www.odoo.com/page/lead-automation">Marketing</a>,
+<a href="https://www.odoo.com/page/manufacturing">Manufacturing</a>,
+<a href="https://www.odoo.com/page/purchase">Purchase Management</a>,
+<a href="https://www.odoo.com/#apps">...</a>
+
+Odoo Apps can be used as stand-alone applications, but they also integrate seamlessly so you get
+a full-featured <a href="https://www.odoo.com">Open Source ERP</a> when you install several Apps.
 
 
-Getting started with Odoo development
---------------------------------------
+Getting started with Odoo
+-------------------------
+For a standard installation please follow the <a href="https://www.odoo.com/documentation/master/setup/install.html">Setup instructions</a>
+from the documentation.
 
-If you are a developer type the following command at your terminal:
-
-    wget -O- https://raw.githubusercontent.com/odoo/odoo/master/odoo.py | python
-
-Then follow <a href="https://doc.openerp.com/trunk/server/howto/howto_website/">the developer tutorial</a>
-
-
-
-Packages, tarballs and installers
----------------------------------
-
-* Debian packages
-
-    Add this apt repository to your /etc/apt/sources.list file
-
-        deb http://nightly.odoo.com/master/nightly/deb/ ./
-
-    Then type:
-
-        $ sudo apt-get update
-        $ sudo apt-get install odoo
-
-* <a href="http://nightly.odoo.com/">Source tarballs</a>
-
-* <a href="http://nightly.odoo.com/">Windows installer</a>
-
-* <a href="http://nightly.odoo.com/">RPM package</a>
-
-
-For Odoo employees
-------------------
-
-To add the odoo-dev remote use this command:
-
-    $ ./odoo.py setup_git_dev
-
-To fetch odoo merge pull requests refs use this command:
-
-    $ ./odoo.py setup_git_review
-
+Then follow <a href="https://www.odoo.com/documentation/master/tutorials.html">the developer tutorials</a>

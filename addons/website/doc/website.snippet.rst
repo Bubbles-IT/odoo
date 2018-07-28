@@ -11,9 +11,9 @@ the drop zone.
 Building Blocks
 +++++++++++++++
 
-Overwrite ``_get_snippet_url`` to set an other file to load the snippets (use by 
+Overwrite ``_getSnippetURL`` to set an other file to load the snippets (use by
 website_mail for example)
-Overwrite ``_add_check_selector`` to enable or disable other snippets. By default
+Overwrite ``_computeSelectorFunctions`` to enable or disable other snippets. By default
 the builder check if the node or his parent have the attribute data-oe-model
 
 Trigger:
@@ -39,7 +39,7 @@ e.g.:
             <span class="oe_snippet_thumbnail_title">...Block Name...</span>
         </div>
         <div class="oe_snippet_body">
-            <!-- 
+            <!--
                 The block with class 'oe_snippet_body' is inserted in the page.
                 This class is removed when the block is dropped.
                 The block can be made of any html tag and content. -->
@@ -69,26 +69,25 @@ Object:
    html editor overlay who content resize bar, customize menu...
 
 Methods:
- - ``set_active``:
+ - ``_setActive``:
    highlight the customize menu item when the user click on customize, and click on
    an item.
  - ``start``:
    called when the editor is created on the DOM
- - ``on_focus``:
+ - ``onFocus``:
    called when the user click inside the block inserted in page and when the
    user drop on block into the page
- - ``on_blur``:
+ - ``onBlur``:
    called when the user click outside the block inserted in page, if the block
    is focused
- - ``on_clone``:
+ - ``onClone``:
    called when the snippet is duplicate
-   @variables: $clone is allready inserted is the page
- - ``on_remove``:
+ - ``onRemove``:
    called when the snippet is removed (dom is removing after this tigger)
- - ``drop_and_build_snippet: 
+ - ``onBuilt:
    called just after that a thumbnail is drag and dropped into a drop zone.
    The content is already inserted in the page.
- - ``clean_for_save``: 
+ - ``cleanForSave``:
    is called just before to save the vue. Sometime it's important to remove or add
    some datas (contentEditable, added classes to a running animation...)
 
@@ -103,32 +102,52 @@ By default to custom method are defined:
  - ``check_class(type, className, $li)``:
    li must have data-check_class="a_classname_for_test" to call this method. This method
    toggle the className on $target
- - ``select_class(type, className, $li)``:
-   This method remove all other select_class value (for this option) and add this current ClassName
+ - ``selectClass(type, className, $li)``:
+   This method remove all other selectClass value (for this option) and add this current ClassName
+
 
 
 Snippet
 +++++++
 
 The ``snippets`` are the HTML code to defined the drop zone and the linked javascript object.
-All HTML li tag defined inside the snippets HTML are insert into the customize menu. All 
+All HTML li tag defined inside the snippets HTML are insert into the customize menu. All
 data attributes is optional:
 
 - ``data-selector``:
   Apply options on all The part of html who match with this jQuery selector.
   E.g.: If the selector is div, all div will be selected and can be highlighted and assigned an editor.
-- ``data-option``:
-  javascript ``option`` to call when the ``editor`` is loaded
+- ``data-js``:
+  javascript to call when the ``editor`` is loaded
 - ``data-drop-in``:
   The html part can be insert or move beside the selected html block (jQuery selector)
 - ``data-drop-near``:
   The html part can be insert or move inside the selected html block (jQuery selector)
-- ``data-drop-in-vertical``:
-  The html part can be insert or move inside the selected html block. The drop zone is displayed
-  vertically (jQuery selector)
 - HTML content like <li data-your_js_method="your_value"><a>...</a></li>:
   List of HTML li menu items displayed in customize menu. If the li tag have datas the methods are
   automatically called
 - ``no-check``:
   The selectors are automatically compute to have elements inside the branding. If you use this option
   the check is not apply (for e.g.: to have a snippet for the grid view of website_sale)
+
+t-snippet and data-snippet
+++++++++++++++++++++++++++
+
+User can call a snippet template with qweb or inside a demo page.
+
+e.g.:
+
+<template id="website.name_of_the_snippet" name="Name of the snippet">
+  <hr/>
+</template>
+
+Inside #snippet_structure for e.g.: ``<t t-snippet="website.name_of_the_snippet" t-thumbnail="/image_path"/>``
+The container of the snippet became not editable (with branding)
+
+Inside a demo page call the snippet with: ``<div data-oe-call="website.name_of_the_template"/>``
+The snippets are loaded in one time by js and the page stay editable.
+
+More
+++++
+
+- Use the class ``o_not_editable`` to prevent the edition from an area.

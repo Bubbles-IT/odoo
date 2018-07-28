@@ -1,32 +1,36 @@
+:banner: banners/web_controllers.jpg
+
 ===============
 Web Controllers
 ===============
 
+.. _reference/http/routing:
+
 Routing
 =======
 
-.. autofunction:: openerp.http.route
+.. autofunction:: odoo.http.route
 
 .. _reference/http/request:
 
 Request
 =======
 
-The request object is automatically set on :data:`openerp.http.request` at
+The request object is automatically set on :data:`odoo.http.request` at
 the start of the request
 
-.. autoclass:: openerp.http.WebRequest
+.. autoclass:: odoo.http.WebRequest
     :members:
     :member-order: bysource
-.. autoclass:: openerp.http.HttpRequest
+.. autoclass:: odoo.http.HttpRequest
     :members:
-.. autoclass:: openerp.http.JsonRequest
+.. autoclass:: odoo.http.JsonRequest
     :members:
 
 Response
 ========
 
-.. autoclass:: openerp.http.Response
+.. autoclass:: odoo.http.Response
     :members:
     :member-order: bysource
 
@@ -40,7 +44,7 @@ Controllers
 ===========
 
 Controllers need to provide extensibility, much like
-:class:`~openerp.models.Model`, but can't use the same mechanism as the
+:class:`~odoo.models.Model`, but can't use the same mechanism as the
 pre-requisites (a database with loaded modules) may not be available yet (e.g.
 no database created, or no database selected).
 
@@ -49,17 +53,17 @@ models:
 
 Controllers are created by :ref:`inheriting <python:tut-inheritance>` from
 
-.. autoclass:: openerp.http.Controller
+.. autoclass:: odoo.http.Controller
 
-and defining methods decorated with :func:`~openerp.http.route`::
+and defining methods decorated with :func:`~odoo.http.route`::
 
-    class MyController(openerp.http.Controller):
+    class MyController(odoo.http.Controller):
         @route('/some_url', auth='public')
         def handler(self):
             return stuff()
 
 To *override* a controller, :ref:`inherit <python:tut-inheritance>` from its
-class and override relevant methods::
+class and override relevant methods, re-exposing them if necessary::
 
     class Extension(MyController):
         @route()
@@ -67,7 +71,7 @@ class and override relevant methods::
             do_before()
             return super(Extension, self).handler()
 
-* decorating with :func:`~openerp.http.route` is necessary to keep the method
+* decorating with :func:`~odoo.http.route` is necessary to keep the method
   (and route) visible: if the method is redefined without decorating, it
   will be "unpublished"
 * the decorators of all methods are combined, if the overriding method's

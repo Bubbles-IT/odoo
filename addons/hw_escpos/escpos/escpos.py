@@ -1,42 +1,36 @@
 # -*- coding: utf-8 -*-
-'''
-@author: Manuel F Martinez <manpaz@bashlinux.com>
-@organization: Bashlinux
-@copyright: Copyright (c) 2012 Bashlinux
-@license: GPL
-'''
+
+from __future__ import print_function
+import base64
+import copy
+import io
+import math
+import re
+import traceback
+import codecs
+from hashlib import md5
+
+from PIL import Image
+from xml.etree import ElementTree as ET
+
+from odoo.tools import pycompat
+
+try:
+    import jcconv
+except ImportError:
+    jcconv = None
 
 try: 
     import qrcode
 except ImportError:
     qrcode = None
 
-import time
-import copy
-import io
-import base64
-import math
-import md5
-import re
-import traceback
-import xml.etree.ElementTree as ET
-import xml.dom.minidom as minidom
-
-from PIL import Image
-
-try:
-    import jcconv
-except ImportError:
-    jcconv = None
-    print 'ESC/POS: please install jcconv for improved Japanese receipt printing:'
-    print ' # pip install jcconv'
-
-from constants import *
-from exceptions import *
+from .constants import *
+from .exceptions import *
 
 def utfstr(stuff):
     """ converts stuff to string and does without failing if stuff is a utf8 string """
-    if isinstance(stuff,basestring):
+    if isinstance(stuff,pycompat.string_types):
         return stuff
     else:
         return str(stuff)
@@ -89,29 +83,41 @@ class StyleStack:
                 'left':     TXT_ALIGN_LT,
                 'right':    TXT_ALIGN_RT,
                 'center':   TXT_ALIGN_CT,
+                '_order':   1,
             },
             'underline': {
                 'off':      TXT_UNDERL_OFF,
                 'on':       TXT_UNDERL_ON,
                 'double':   TXT_UNDERL2_ON,
+                # must be issued after 'size' command
+                # because ESC ! resets ESC -
+                '_order':   10,
             },
             'bold': {
                 'off':      TXT_BOLD_OFF,
                 'on':       TXT_BOLD_ON,
+                # must be issued after 'size' command
+                # because ESC ! resets ESC -
+                '_order':   10,
             },
             'font': {
                 'a':        TXT_FONT_A,
                 'b':        TXT_FONT_B,
+                # must be issued after 'size' command
+                # because ESC ! resets ESC -
+                '_order':   10,
             },
             'size': {
                 'normal':           TXT_NORMAL,
                 'double-height':    TXT_2HEIGHT,
                 'double-width':     TXT_2WIDTH,
                 'double':           TXT_DOUBLE,
+                '_order':   1,
             },
             'color': {
                 'black':    TXT_COLOR_BLACK,
                 'red':      TXT_COLOR_RED,
+                '_order':   1,
             },
         }
 
@@ -143,7 +149,7 @@ class StyleStack:
         _style = {}
         for attr in style:
             if attr in self.cmds and not style[attr] in self.cmds[attr]:
-                print 'WARNING: ESC/POS PRINTING: ignoring invalid value: '+utfstr(style[attr])+' for style: '+utfstr(attr)
+                print('WARNING: ESC/POS PRINTING: ignoring invalid value: %s for style %s' % (style[attr], utfstr(attr)))
             else:
                 _style[attr] = self.enforce_type(attr, style[attr])
         self.stack.append(_style)
@@ -153,7 +159,7 @@ class StyleStack:
         _style = {}
         for attr in style:
             if attr in self.cmds and not style[attr] in self.cmds[attr]:
-                print 'WARNING: ESC/POS PRINTING: ignoring invalid value: '+utfstr(style[attr])+' for style: '+utfstr(attr)
+                print('WARNING: ESC/POS PRINTING: ignoring invalid value: %s for style %s' % (style[attr], attr))
             else:
                 self.stack[-1][attr] = self.enforce_type(attr, style[attr])
 
@@ -165,7 +171,8 @@ class StyleStack:
     def to_escpos(self):
         """ converts the current style to an escpos command string """
         cmd = ''
-        for style in self.cmds:
+        ordered_cmds = sorted(self.cmds, key=lambda x: self.cmds[x]['_order'])
+        for style in ordered_cmds:
             cmd += self.cmds[style][self.get(style)]
         return cmd
 
@@ -312,9 +319,9 @@ class Escpos:
         else:
             image_border = 32 - (size % 32)
             if (image_border % 2) == 0:
-                return (image_border / 2, image_border / 2)
+                return (int(image_border / 2), int(image_border / 2))
             else:
-                return (image_border / 2, (image_border / 2) + 1)
+                return (int(image_border / 2), int((image_border / 2) + 1))
 
     def _print_image(self, line, size):
         """ Print formatted image """
@@ -324,8 +331,8 @@ class Escpos:
 
        
         self._raw(S_RASTER_N)
-        buffer = "%02X%02X%02X%02X" % (((size[0]/size[1])/8), 0, size[1], 0)
-        self._raw(buffer.decode('hex'))
+        buffer = b"%02X%02X%02X%02X" % (int((size[0]/size[1])/8), 0, size[1], 0)
+        self._raw(codecs.decode(buffer, 'hex'))
         buffer = ""
 
         while i < len(line):
@@ -334,7 +341,7 @@ class Escpos:
             i += 8
             cont += 1
             if cont % 4 == 0:
-                self._raw(buffer.decode("hex"))
+                self._raw(codecs.decode(buffer, "hex"))
                 buffer = ""
                 cont = 0
 
@@ -343,7 +350,7 @@ class Escpos:
         i = 0
         cont = 0
         buffer = ""
-        raw = ""
+        raw = b""
 
         def __raw(string):
             if output:
@@ -352,8 +359,8 @@ class Escpos:
                 self._raw(string)
        
         raw += S_RASTER_N
-        buffer = "%02X%02X%02X%02X" % (((size[0]/size[1])/8), 0, size[1], 0)
-        raw += buffer.decode('hex')
+        buffer = "%02X%02X%02X%02X" % (int((size[0]/size[1])/8), 0, size[1], 0)
+        raw += codecs.decode(buffer, 'hex')
         buffer = ""
 
         while i < len(line):
@@ -362,7 +369,7 @@ class Escpos:
             i += 8
             cont += 1
             if cont % 4 == 0:
-                raw += buffer.decode("hex")
+                raw += codecs.decode(buffer, 'hex')
                 buffer = ""
                 cont = 0
 
@@ -379,7 +386,7 @@ class Escpos:
 
 
         if im.size[0] > 512:
-            print  "WARNING: Image is wider than 512 and could be truncated at print time "
+            print("WARNING: Image is wider than 512 and could be truncated at print time ")
         if im.size[1] > 255:
             raise ImageSizeError()
 
@@ -425,31 +432,36 @@ class Escpos:
 
     def print_base64_image(self,img):
 
-        print 'print_b64_img'
+        print('print_b64_img')
 
-        id = md5.new(img).digest()
+        id = md5(img).digest()
 
         if id not in self.img_cache:
-            print 'not in cache'
+            print('not in cache')
 
-            img = img[img.find(',')+1:]
-            f = io.BytesIO('img')
-            f.write(base64.decodestring(img))
+            img = img[img.find(b',')+1:]
+            f = io.BytesIO(b'img')
+            f.write(base64.decodebytes(img))
             f.seek(0)
             img_rgba = Image.open(f)
             img = Image.new('RGB', img_rgba.size, (255,255,255))
-            img.paste(img_rgba, mask=img_rgba.split()[3]) 
+            channels = img_rgba.split()
+            if len(channels) > 3:
+                # use alpha channel as mask
+                img.paste(img_rgba, mask=channels[3])
+            else:
+                img.paste(img_rgba)
 
-            print 'convert image'
+            print('convert image')
         
             pix_line, img_size = self._convert_image(img)
 
-            print 'print image'
+            print('print image')
 
             buffer = self._raw_print_image(pix_line, img_size)
             self.img_cache[id] = buffer
 
-        print 'raw image'
+        print('raw image')
 
         self._raw(self.img_cache[id])
 
@@ -511,8 +523,12 @@ class Escpos:
         # Print Code
         if code:
             self._raw(code)
+            # We are using type A commands
+            # So we need to add the 'NULL' character
+            # https://github.com/python-escpos/python-escpos/pull/98/files#diff-a0b1df12c7c67e38915adbe469051e2dR444
+            self._raw('\x00')
         else:
-            raise exception.BarcodeCodeError()
+            raise BarcodeCodeError()
 
     def receipt(self,xml):
         """
@@ -662,7 +678,7 @@ class Escpos:
 
             elif elem.tag == 'img':
                 if 'src' in elem.attrib and 'data:' in elem.attrib['src']:
-                    self.print_base64_image(elem.attrib['src'])
+                    self.print_base64_image(bytes(elem.attrib['src'], 'utf-8'))
 
             elif elem.tag == 'barcode' and 'encoding' in elem.attrib:
                 serializer.start_block(stylestack)
@@ -737,6 +753,7 @@ class Escpos:
                     'cp866': TXT_ENC_PC866,
                     'cp862': TXT_ENC_PC862,
                     'cp720': TXT_ENC_PC720,
+                    'cp936': TXT_ENC_PC936,
                     'iso8859_2': TXT_ENC_8859_2,
                     'iso8859_7': TXT_ENC_8859_7,
                     'iso8859_9': TXT_ENC_8859_9,
@@ -778,22 +795,22 @@ class Escpos:
                     if encoding in remaining:
                         del remaining[encoding]
                     if len(remaining) >= 1:
-                        encoding = remaining.items()[0][0]
+                        (encoding, _) = remaining.popitem()
                     else:
                         encoding = 'cp437'
-                        encoded  = '\xb1'    # could not encode, output error character
+                        encoded  = b'\xb1'    # could not encode, output error character
                         break;
 
             if encoding != self.encoding:
                 # if the encoding changed, remember it and prefix the character with
                 # the esc-pos encoding change sequence
                 self.encoding = encoding
-                encoded = encodings[encoding] + encoded
+                encoded = bytes(encodings[encoding], 'utf-8') + encoded
 
             return encoded
         
         def encode_str(txt):
-            buffer = ''
+            buffer = b''
             for c in txt:
                 buffer += encode_char(c)
             return buffer
